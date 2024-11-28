@@ -1,7 +1,7 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-
+#This code can capture only posture from image (golf club not include) you need to draw a golf club and adjust by yourself
 class StickmanDrawerWithCustomClubAngle:
     def __init__(self, static_image_mode=True, model_complexity=2):
         self.mp_pose = mp.solutions.pose
@@ -53,6 +53,8 @@ class StickmanDrawerWithCustomClubAngle:
             wrist = keypoints[self.mp_pose.PoseLandmark.RIGHT_WRIST.value]
 
             # Define the endpoint of the club based on the custom angle
+
+            #adjust length of golf club here
             club_length = 300  # Length of the golf club in pixels
             club_endpoint = (
                 int(wrist[0] + club_length * np.cos(club_angle)),
