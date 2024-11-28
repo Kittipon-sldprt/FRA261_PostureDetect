@@ -1,8 +1,10 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+
 #This code can capture only posture from image (golf club not include) you need to draw a golf club and adjust by yourself
-class StickmanDrawerWithCustomClubAngle:
+
+class StickmanDrawer:
     def __init__(self, static_image_mode=True, model_complexity=2):
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(
@@ -53,8 +55,6 @@ class StickmanDrawerWithCustomClubAngle:
             wrist = keypoints[self.mp_pose.PoseLandmark.RIGHT_WRIST.value]
 
             # Define the endpoint of the club based on the custom angle
-
-            #adjust length of golf club here
             club_length = 300  # Length of the golf club in pixels
             club_endpoint = (
                 int(wrist[0] + club_length * np.cos(club_angle)),
@@ -84,6 +84,26 @@ class StickmanDrawerWithCustomClubAngle:
             # Return a blank image if no pose is detected
             return np.ones_like(image) * 255
 
+    def display_side_by_side(self, original_image, stickman_image):
+        """
+        Display the original image and stickman side by side.
+        """
+        # Resize images to the same height for concatenation
+        height = max(original_image.shape[0], stickman_image.shape[0])
+        width_original = original_image.shape[1]
+        width_stickman = stickman_image.shape[1]
+
+        resized_original = cv2.resize(original_image, (width_original, height))
+        resized_stickman = cv2.resize(stickman_image, (width_stickman, height))
+
+        # Concatenate images side by side
+        combined_image = np.hstack((resized_original, resized_stickman))
+
+        # Display the combined image
+        cv2.imshow("Original Image and Stickman", combined_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
     def release(self):
         """Release resources."""
         self.pose.close()
@@ -92,7 +112,7 @@ class StickmanDrawerWithCustomClubAngle:
 # Example Usage
 if __name__ == "__main__":
     # Initialize the stickman drawer
-    stickman_drawer = StickmanDrawerWithCustomClubAngle()
+    stickman_drawer = StickmanDrawer()
 
     # Read an image
     image = cv2.imread('tiger_stand.png')  # Replace with your image path
@@ -101,12 +121,10 @@ if __name__ == "__main__":
     club_angle = np.deg2rad(90)  # Change this to set different angles
 
     # Process the image to draw a stickman with a custom club angle
-    output_image = stickman_drawer.process_frame(image, club_angle=club_angle)
+    stickman_image = stickman_drawer.process_frame(image, club_angle=club_angle)
 
-    # Show the stickman with the golf club
-    cv2.imshow("Stickman with Golf Club (Custom Angle)", output_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # Display the original image and stickman side by side
+    stickman_drawer.display_side_by_side(image, stickman_image)
 
     # Release resources
     stickman_drawer.release()
